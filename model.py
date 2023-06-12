@@ -16,7 +16,6 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
-        x = x.unsqueeze(1)
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
@@ -30,16 +29,6 @@ class Net(nn.Module):
         x = self.fc2(x)
         output = F.log_softmax(x, dim=1)
         return output
-    
-    def get_params_numpy(self) -> np.ndarray:
-        return [param.detach().numpy() for param in self.parameters()]
-
-    def assign_params(self, params: np.ndarray) -> None:
-        state_dict = self.state_dict()
-        weights_tensors = [torch.from_numpy(arr) for arr in params]
-        for name, weight_tensor in zip(state_dict.keys(), weights_tensors):
-            state_dict[name] = weight_tensor
-        self.load_state_dict(state_dict)
 
 
 def train(model: Net, device: str, train_loader: Dataset, optimizer: Optimizer, epoch: int) -> None:
@@ -66,7 +55,7 @@ def test(model, device, test_loader):
             data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += F.nll_loss(output, target, reduction='sum').item()
-            pred = output.argmax(dim=2, keepdim=True)
+            pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
