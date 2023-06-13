@@ -1,6 +1,5 @@
 import argparse
 import random
-from functools import reduce
 import numpy as np
 import torch
 import torch.optim as optim
@@ -10,7 +9,6 @@ from torchvision import datasets, transforms
 from model import Net, train, test
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
 
 transform=transforms.Compose([
     transforms.ToTensor(),
@@ -49,27 +47,25 @@ def start_fl(args) -> None:
     
     for round in range(1, 1 + args.num_rounds):
         print(f'starting round {round}')
-
         # step 1: select clients to participate in the FL round
         selected_clients = select_clients(clients, args.percentage_available_per_round)
-
         # step 2: distribute the server model to all selected clients
         for c in selected_clients: c.model().load_state_dict(server_model.state_dict())
-        
         # step 3: each client trains it's model locally
         for c in selected_clients: c.train()
-        
         # step 4: the server collects and aggregates all client models and updates the server model
         new_params = fed_avg(selected_clients)
         server_model.load_state_dict(new_params)
-        
         # step 5: test the model on the server dataset
         test(server_model, device, test_loader)
 
+    if args.save_model:
+        torch.save(server_model.state_dict(), 'mnist_cnn.pt')
 
 def select_clients(clients: list[Client], percentage_available: float) -> list[Client]:
-    k = len(clients) * percentage_available
-    return random.sample(clients, int(k))
+    k = int(len(clients) * percentage_available)
+    print(f'selecting {k} random clients')
+    return random.sample(clients, k)
 
 def fed_avg(clients: list[Client]) -> dict:
     total_samples = sum(client.num_samples() for client in clients)
@@ -83,11 +79,12 @@ def fed_avg(clients: list[Client]) -> dict:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Federate Learning simulation for MNIST')
-    parser.add_argument('--num-rounds', help='number of rounds (default: 25)', type=int, default=25)
+    parser.add_argument('--num-rounds', help='number of rounds (default: 10)', type=int, default=10)
     parser.add_argument('--num-clients', help='number of clients (default: 100)', type=int, default=100)
-    parser.add_argument('--percentage-available-per-round', help='percentage of clients that participate in training each round (default: 0.2)', type=float, default=0.2)
-    parser.add_argument('--batch-size', help='batch size used for training by each client (default: 64)', type=int, default=64)
-    parser.add_argument('--epochs', help='number of epochs to train on each client (default: 5)', type=int, default=5)
+    parser.add_argument('--percentage-available-per-round', help='percentage of clients that participate in training each round (default: 0.1)', type=float, default=0.1)
+    parser.add_argument('--batch-size', help='batch size used for training by each client (default: 16)', type=int, default=16)
+    parser.add_argument('--epochs', help='number of epochs to train on each client (default: 10)', type=int, default=10)
     parser.add_argument('--learning-rate', help='learing rate used by each client (default: 0.0001)', type=float, default=0.0001)
+    parser.add_argument('--save-model', help='save the trained server model', action='store_true', default=False)
     args = parser.parse_args()
     start_fl(args)
