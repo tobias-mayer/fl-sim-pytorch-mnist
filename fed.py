@@ -3,7 +3,6 @@ import random
 import numpy as np
 import torch
 import torch.optim as optim
-from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import TensorDataset
 from torchvision import datasets, transforms
 from model import Net, train, test
@@ -31,7 +30,6 @@ class Client:
     
     def train(self) -> None:
         print(f'starting training on client {self.client_id}')
-        # optimizer = optim.Adam(self._model.parameters(), lr=self._args.learning_rate)
         optimizer = optim.Adam(self._model.parameters(), lr=self._args.learning_rate)
         for epoch in range(1, self._args.epochs + 1):
             train(self._model, device, self._train_loader, optimizer, epoch)
@@ -60,7 +58,7 @@ def start_fl(args) -> None:
         test(server_model, device, test_loader)
 
     if args.save_model:
-        torch.save(server_model.state_dict(), 'mnist_cnn.pt')
+        torch.save(server_model.state_dict(), 'mnist_cnn_fed.pt')
 
 def select_clients(clients: list[Client], percentage_available: float) -> list[Client]:
     k = int(len(clients) * percentage_available)

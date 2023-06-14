@@ -2,7 +2,8 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
 .vscode
-mnist_cnn.pt
+mnist_cnn_fed.pt
+mnist_cnn_central.pt
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
