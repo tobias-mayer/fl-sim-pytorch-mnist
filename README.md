@@ -7,25 +7,30 @@ This project is a small federated learning simulation implemented in PyTorch, ut
 1. Clone this repository:
 ```sh
 git clone https://github.com/tobias-mayer/fl-sim-pytorch-mnist.git
-cd ...
+cd fl-sim-pytorch-mnist
 ```
 2. Setup environment:
 ```sh
-conda env create --file environment.yaml
-conda activate torch-fl
+conda env create --file environment.yaml && conda activate torch-fl
 ```
 3. Run:
 ```sh
-python3 main.py
+python3 fed.py
 ```
 
 The simulation will execute several rounds of federated learning, where each round consists of multiple local training iterations performed by multiple clients (simulated edge devices). After each round, the global model's accuracy and loss will be evaluated on the test dataset.
 
+## Results
+For comparison with the central learning approach, the same model can be trained centrally using `python3 central.py`.
+This project implements a simple federated learning approach that achieves an accuracy of 97%, almost matching the performance of the traditional central learning approach (99%). The performance of the federated model can be further optimized by tuning the parameters of the training script. Execute `python3 fed.py -h` for a list of all parameters.
+
+![Results Federated Learning](images/results_fed.png "Some images and their output produced by the FL model")
+
 ## Customization
-If you want to customize the simulation, you can modify the following parameters in the `main.py` script:
+If you want to customize the simulation, you can modify the following parameters in the `fed.py` script:
 
 ```sh
-usage: main.py [-h] [--num-rounds NUM_ROUNDS] [--num-clients NUM_CLIENTS]
+usage: fed.py [-h] [--num-rounds NUM_ROUNDS] [--num-clients NUM_CLIENTS]
                [--percentage-available-per-round PERCENTAGE_AVAILABLE_PER_ROUND] [--batch-size BATCH_SIZE]
                [--epochs EPOCHS] [--learning-rate LEARNING_RATE] [--save-model]
 
